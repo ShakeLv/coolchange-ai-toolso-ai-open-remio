@@ -197,6 +197,7 @@ const toolsData = [
   { id: 'tool_otter', slug: 'otter-ai', domain: 'otter.ai', websiteUrl: 'https://otter.ai', logoUrl: 'https://otter.ai/favicon.ico', nameEn: 'Otter.ai', descriptionEn: 'AI meeting assistant that transcribes, summarizes, and creates action items from meetings automatically.', nameZh: 'Otter.ai', descriptionZh: 'AI会议助手，自动转录、总结会议并创建待办事项。', status: 'published' },
   { id: 'tool_fireflies', slug: 'fireflies', domain: 'fireflies.ai', websiteUrl: 'https://fireflies.ai', logoUrl: 'https://fireflies.ai/favicon.ico', nameEn: 'Fireflies.ai', descriptionEn: 'AI notetaker for meetings. Records, transcribes, and summarizes meetings across all major platforms.', nameZh: 'Fireflies.ai', descriptionZh: '会议AI笔记助手。在所有主流平台上录制、转录和总结会议。', status: 'published' },
   { id: 'tool_mem', slug: 'mem-ai', domain: 'mem.ai', websiteUrl: 'https://mem.ai', logoUrl: 'https://mem.ai/favicon.ico', nameEn: 'Mem', descriptionEn: 'AI-powered note-taking app that organizes and surfaces relevant information automatically.', nameZh: 'Mem', descriptionZh: 'AI驱动的笔记应用，自动组织和呈现相关信息。', status: 'published' },
+  { id: 'tool_remio', slug: 'remio', domain: 'remio.ai', websiteUrl: 'https://remio.ai', logoUrl: 'https://remio.ai/favicon.ico', nameEn: 'Remio', descriptionEn: 'Local-first AI memory and personal knowledge base that parses files, webpages, recordings, emails, messages, images, and notes into local indexes and vectors for focused context retrieval.', nameZh: 'Remio', descriptionZh: '本地优先的 AI 记忆和个人知识库，可解析文件、网页、录音、邮件、消息、图片和笔记，并建立本地索引与向量，帮助快速检索个人上下文。', status: 'published' },
   { id: 'tool_motion', slug: 'motion', domain: 'usemotion.com', websiteUrl: 'https://usemotion.com', logoUrl: 'https://usemotion.com/favicon.ico', nameEn: 'Motion', descriptionEn: 'AI calendar and project management. Automatically schedules tasks and meetings for optimal productivity.', nameZh: 'Motion', descriptionZh: 'AI日历和项目管理工具。自动安排任务和会议以实现最佳生产力。', status: 'published' },
 
   // AI 研究与分析 (3个)
@@ -271,6 +272,8 @@ const toolCategoryData = [
   { toolId: 'tool_otter', categoryId: 'cat_productivity' },
   { toolId: 'tool_fireflies', categoryId: 'cat_productivity' },
   { toolId: 'tool_mem', categoryId: 'cat_productivity' },
+  { toolId: 'tool_remio', categoryId: 'cat_productivity' },
+  { toolId: 'tool_remio', categoryId: 'cat_research' },
   { toolId: 'tool_motion', categoryId: 'cat_productivity' },
   // 研究
   { toolId: 'tool_consensus', categoryId: 'cat_research' },
@@ -521,6 +524,11 @@ const toolTagData = [
   { toolId: 'tool_mem', tagId: 'tag_freemium' },
   { toolId: 'tool_mem', tagId: 'tag_llm' },
   { toolId: 'tool_mem', tagId: 'tag_text' },
+  // Remio
+  { toolId: 'tool_remio', tagId: 'tag_freemium' },
+  { toolId: 'tool_remio', tagId: 'tag_llm' },
+  { toolId: 'tool_remio', tagId: 'tag_text' },
+  { toolId: 'tool_remio', tagId: 'tag_desktop' },
   // Motion
   { toolId: 'tool_motion', tagId: 'tag_paid' },
   { toolId: 'tool_motion', tagId: 'tag_collaborative' },

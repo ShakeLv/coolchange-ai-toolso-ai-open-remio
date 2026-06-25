@@ -115,6 +115,7 @@ INSERT INTO tool (id, slug, domain, website_url, cover_image_url, logo_url, name
 ('tool_otter', 'otter-ai', 'otter.ai', 'https://otter.ai', NULL, 'https://www.google.com/s2/favicons?domain=otter.ai&sz=128', 'Otter.ai', 'AI meeting assistant that transcribes, summarizes, and creates action items from meetings automatically.', 'Otter.ai', 'AI会议助手，自动转录、总结会议并创建待办事项。', 'published'),
 ('tool_fireflies', 'fireflies', 'fireflies.ai', 'https://fireflies.ai', NULL, 'https://www.google.com/s2/favicons?domain=fireflies.ai&sz=128', 'Fireflies.ai', 'AI notetaker for meetings. Records, transcribes, and summarizes meetings across all major platforms.', 'Fireflies.ai', '会议AI笔记助手。在所有主流平台上录制、转录和总结会议。', 'published'),
 ('tool_mem', 'mem-ai', 'mem.ai', 'https://mem.ai', NULL, 'https://www.google.com/s2/favicons?domain=mem.ai&sz=128', 'Mem', 'AI-powered note-taking app that organizes and surfaces relevant information automatically.', 'Mem', 'AI驱动的笔记应用，自动组织和呈现相关信息。', 'published'),
+('tool_remio', 'remio', 'remio.ai', 'https://remio.ai', NULL, 'https://www.google.com/s2/favicons?domain=remio.ai&sz=128', 'Remio', 'Local-first AI memory and personal knowledge base that parses files, webpages, recordings, emails, messages, images, and notes into local indexes and vectors for focused context retrieval.', 'Remio', '本地优先的 AI 记忆和个人知识库，可解析文件、网页、录音、邮件、消息、图片和笔记，并建立本地索引与向量，帮助快速检索个人上下文。', 'published'),
 ('tool_motion', 'motion', 'usemotion.com', 'https://usemotion.com', NULL, 'https://www.google.com/s2/favicons?domain=usemotion.com&sz=128', 'Motion', 'AI calendar and project management. Automatically schedules tasks and meetings for optimal productivity.', 'Motion', 'AI日历和项目管理工具。自动安排任务和会议以实现最佳生产力。', 'published'),
 
 -- AI 研究与分析 (3个)
@@ -188,6 +189,8 @@ INSERT INTO tool_category (tool_id, category_id) VALUES
 ('tool_otter', 'cat_productivity'),
 ('tool_fireflies', 'cat_productivity'),
 ('tool_mem', 'cat_productivity'),
+('tool_remio', 'cat_productivity'),
+('tool_remio', 'cat_research'),
 ('tool_motion', 'cat_productivity'),
 -- 研究
 ('tool_consensus', 'cat_research'),
@@ -437,6 +440,11 @@ INSERT INTO tool_tag (tool_id, tag_id) VALUES
 ('tool_mem', 'tag_freemium'),
 ('tool_mem', 'tag_llm'),
 ('tool_mem', 'tag_text'),
+-- Remio
+('tool_remio', 'tag_freemium'),
+('tool_remio', 'tag_llm'),
+('tool_remio', 'tag_text'),
+('tool_remio', 'tag_desktop'),
 -- Motion
 ('tool_motion', 'tag_paid'),
 ('tool_motion', 'tag_collaborative'),
