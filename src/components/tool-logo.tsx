@@ -9,7 +9,9 @@ interface ToolLogoProps {
 }
 
 /**
- * 工具 Logo：远程图走 next/image 优化；
+ * 工具 Logo：走 next/image（懒加载 + 布局占位），但标记 unoptimized——
+ * logo 多为各官网的 favicon.ico，sharp 无法解码 ICO 格式，经优化器必然裂图；
+ * 且 48-80px 小图优化收益为零，直接由浏览器加载。
  * data: URL（未配置 R2 时的上传回退）next/image 不支持，降级为原生 img；
  * 无图时显示首字母占位。
  */
@@ -54,6 +56,7 @@ export function ToolLogo({ src, alt, size = 48, className }: ToolLogoProps) {
       width={size}
       height={size}
       style={style}
+      unoptimized
       className={cn("flex-shrink-0 rounded-lg object-cover", className)}
     />
   );
