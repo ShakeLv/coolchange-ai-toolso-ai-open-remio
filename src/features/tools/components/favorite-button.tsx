@@ -38,6 +38,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const t = useTranslations("tools.favorites");
   const isAuthenticated = !!session.data?.user;
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (session.isPending) return;
@@ -56,7 +57,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // 乐观更新，失败回滚
+      // 单个工具同一时刻只允许一个进行中的请求，防止连点竞态
+      if (pendingIds.has(toolId)) return;
+      setPendingIds((prev) => new Set(prev).add(toolId));
+
+      // 乐观更新；响应到达后以服务端返回的最终状态收敛
       setFavoriteIds((prev) => {
         const next = new Set(prev);
         if (next.has(toolId)) {
@@ -67,22 +72,37 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
 
-      toggleFavorite(toolId).then((result) => {
-        if (!result.success) {
+      toggleFavorite(toolId)
+        .then((result) => {
           setFavoriteIds((prev) => {
             const next = new Set(prev);
-            if (next.has(toolId)) {
-              next.delete(toolId);
+            if (result.success) {
+              if (result.favorited) {
+                next.add(toolId);
+              } else {
+                next.delete(toolId);
+              }
             } else {
-              next.add(toolId);
+              // 失败回滚乐观更新
+              if (next.has(toolId)) {
+                next.delete(toolId);
+              } else {
+                next.add(toolId);
+              }
             }
             return next;
           });
-          toast.error(t("error"));
-        }
-      });
+          if (!result.success) toast.error(t("error"));
+        })
+        .finally(() => {
+          setPendingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(toolId);
+            return next;
+          });
+        });
     },
-    [isAuthenticated, locale, router, t]
+    [isAuthenticated, locale, pendingIds, router, t]
   );
 
   const value = useMemo(

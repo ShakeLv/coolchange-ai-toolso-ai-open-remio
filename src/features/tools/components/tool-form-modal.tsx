@@ -25,6 +25,8 @@ interface ToolData {
   descriptionEn: string | null;
   nameZh: string | null;
   descriptionZh: string | null;
+  pricing: string | null;
+  featured: boolean;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -68,6 +70,8 @@ export function ToolFormModal({ tool, onClose, onSave }: ToolFormModalProps) {
     nameZh: tool?.nameZh || "",
     descriptionZh: tool?.descriptionZh || "",
     status: tool?.status || "draft",
+    pricing: tool?.pricing || "",
+    featured: tool?.featured || false,
     categoryIds: [] as string[],
     tagIds: [] as string[],
   });
@@ -109,6 +113,11 @@ export function ToolFormModal({ tool, onClose, onSave }: ToolFormModalProps) {
           id: tool.id,
           ...formData,
           status: formData.status as "draft" | "published",
+          pricing: (formData.pricing || null) as
+            | "free"
+            | "freemium"
+            | "paid"
+            | null,
           domain: formData.domain || undefined,
           websiteUrl: formData.websiteUrl || undefined,
           coverImageUrl: formData.coverImageUrl || undefined,
@@ -120,6 +129,7 @@ export function ToolFormModal({ tool, onClose, onSave }: ToolFormModalProps) {
         onSave({
           ...tool,
           ...formData,
+          pricing: formData.pricing || null,
           domain: formData.domain || null,
           websiteUrl: formData.websiteUrl || null,
           coverImageUrl: formData.coverImageUrl || null,
@@ -133,6 +143,11 @@ export function ToolFormModal({ tool, onClose, onSave }: ToolFormModalProps) {
       } else {
         const result = await createTool({
           ...formData,
+          pricing: (formData.pricing || null) as
+            | "free"
+            | "freemium"
+            | "paid"
+            | null,
           domain: formData.domain || undefined,
           websiteUrl: formData.websiteUrl || undefined,
           coverImageUrl: formData.coverImageUrl || undefined,
@@ -145,6 +160,7 @@ export function ToolFormModal({ tool, onClose, onSave }: ToolFormModalProps) {
         onSave({
           id: result.id,
           ...formData,
+          pricing: formData.pricing || null,
           domain: formData.domain || null,
           websiteUrl: formData.websiteUrl || null,
           coverImageUrl: formData.coverImageUrl || null,
@@ -230,9 +246,42 @@ export function ToolFormModal({ tool, onClose, onSave }: ToolFormModalProps) {
                   }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                 >
-                  <option value="draft">{t("status") === "状态" ? "草稿" : "Draft"}</option>
-                  <option value="published">{t("status") === "状态" ? "已发布" : "Published"}</option>
+                  <option value="draft">{t("statusDraft")}</option>
+                  <option value="published">{t("statusPublished")}</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                  {t("pricing")}
+                </label>
+                <select
+                  value={formData.pricing}
+                  onChange={(e) =>
+                    setFormData({ ...formData, pricing: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
+                >
+                  <option value="">{t("pricingNone")}</option>
+                  <option value="free">{t("pricingFree")}</option>
+                  <option value="freemium">{t("pricingFreemium")}</option>
+                  <option value="paid">{t("pricingPaid")}</option>
+                </select>
+              </div>
+              <div className="flex items-end pb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) =>
+                      setFormData({ ...formData, featured: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  {t("featured")}
+                </label>
               </div>
             </div>
 

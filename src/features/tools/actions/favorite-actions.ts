@@ -20,21 +20,22 @@ export async function toggleFavorite(toolId: string) {
     return { success: false as const, error: "UNAUTHORIZED" };
   }
 
-  const [existing] = await db
-    .select({ toolId: favorite.toolId })
-    .from(favorite)
-    .where(and(eq(favorite.userId, userId), eq(favorite.toolId, toolId)))
-    .limit(1);
+  // 原子 toggle：先尝试插入，冲突（已收藏）则删除。
+  // 避免"先查再写"在并发点击下的竞态，返回值即数据库最终状态。
+  const inserted = await db
+    .insert(favorite)
+    .values({ userId, toolId })
+    .onConflictDoNothing()
+    .returning({ toolId: favorite.toolId });
 
-  if (existing) {
-    await db
-      .delete(favorite)
-      .where(and(eq(favorite.userId, userId), eq(favorite.toolId, toolId)));
-    return { success: true as const, favorited: false };
+  if (inserted.length > 0) {
+    return { success: true as const, favorited: true };
   }
 
-  await db.insert(favorite).values({ userId, toolId }).onConflictDoNothing();
-  return { success: true as const, favorited: true };
+  await db
+    .delete(favorite)
+    .where(and(eq(favorite.userId, userId), eq(favorite.toolId, toolId)));
+  return { success: true as const, favorited: false };
 }
 
 /**

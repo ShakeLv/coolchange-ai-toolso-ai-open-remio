@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { newsletterSubscription } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { syncResendContact } from "@/lib/newsletter";
 
 const emailSchema = z.string().email().max(255);
 
@@ -39,6 +40,9 @@ export async function subscribeNewsletter(email: string) {
           })
           .where(eq(newsletterSubscription.id, existing.id));
       }
+      // 已订阅用户重复提交同样触发同步——这是此前同步失败后的重试路径，
+      // 不能提前返回跳过（重新订阅场景也依赖它恢复 Resend 侧状态）
+      await syncResendContact(normalizedEmail, false);
       return { success: true as const };
     }
 
@@ -55,19 +59,7 @@ export async function subscribeNewsletter(email: string) {
   }
 
   // 可选：同步到 Resend Audience，失败不影响本地订阅结果
-  if (process.env.RESEND_API_KEY && process.env.RESEND_AUDIENCE_ID) {
-    try {
-      const { Resend } = await import("resend");
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      await resend.contacts.create({
-        email: normalizedEmail,
-        audienceId: process.env.RESEND_AUDIENCE_ID,
-        unsubscribed: false,
-      });
-    } catch (error) {
-      console.error("Failed to sync contact to Resend:", error);
-    }
-  }
+  await syncResendContact(normalizedEmail, false);
 
   return { success: true as const };
 }

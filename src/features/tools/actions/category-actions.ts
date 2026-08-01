@@ -5,6 +5,14 @@ import { category, toolCategory, tool } from "@/lib/db/schema";
 import { eq, asc, and, sql } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
+
+// 分类数据出现在首页、工具列表、ISR 分类落地页上，变更需全部失效
+function revalidateCategoryPages() {
+  revalidatePath("/[locale]", "page");
+  revalidatePath("/[locale]/tools", "page");
+  revalidatePath("/[locale]/category/[slug]", "page");
+  revalidatePath("/[locale]/admin/categories", "page");
+}
 import { nanoid } from "nanoid";
 
 // ========== 类型定义 ==========
@@ -92,8 +100,7 @@ export async function createCategory(input: CreateCategoryInput) {
     sortOrder: input.sortOrder ?? 0,
   });
 
-  revalidatePath("/admin/categories");
-  revalidatePath("/tools");
+  revalidateCategoryPages();
   return { success: true, id };
 }
 
@@ -116,8 +123,7 @@ export async function updateCategory(input: UpdateCategoryInput) {
     })
     .where(eq(category.id, id));
 
-  revalidatePath("/admin/categories");
-  revalidatePath("/tools");
+  revalidateCategoryPages();
   return { success: true };
 }
 
@@ -133,8 +139,7 @@ export async function deleteCategory(id: string) {
   // 删除分类会自动删除关联（级联删除）
   await db.delete(category).where(eq(category.id, id));
 
-  revalidatePath("/admin/categories");
-  revalidatePath("/tools");
+  revalidateCategoryPages();
   return { success: true };
 }
 
@@ -156,7 +161,6 @@ export async function updateCategorySortOrder(
       .where(eq(category.id, item.id));
   }
 
-  revalidatePath("/admin/categories");
-  revalidatePath("/tools");
+  revalidateCategoryPages();
   return { success: true };
 }

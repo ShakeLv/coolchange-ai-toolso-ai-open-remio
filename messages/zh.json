@@ -319,7 +319,15 @@
         "updated": "工具已更新",
         "created": "工具已创建",
         "updateFailed": "更新失败",
-        "createFailed": "创建失败"
+        "createFailed": "创建失败",
+        "statusDraft": "草稿",
+        "statusPublished": "已发布",
+        "pricing": "定价",
+        "pricingNone": "未设置",
+        "pricingFree": "免费",
+        "pricingFreemium": "免费增值",
+        "pricingPaid": "付费",
+        "featured": "首页精选"
       }
     },
     "categoriesManagement": {

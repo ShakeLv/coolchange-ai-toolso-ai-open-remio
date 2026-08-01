@@ -21,7 +21,7 @@ export interface CreateToolInput {
   descriptionEn?: string;
   nameZh?: string;
   descriptionZh?: string;
-  pricing?: ToolPricing;
+  pricing?: ToolPricing | null;
   featured?: boolean;
   status?: ToolStatus;
   categoryIds?: string[];

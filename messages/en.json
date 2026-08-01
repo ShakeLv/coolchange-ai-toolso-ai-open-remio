@@ -319,7 +319,15 @@
         "updated": "Tool updated",
         "created": "Tool created",
         "updateFailed": "Update failed",
-        "createFailed": "Create failed"
+        "createFailed": "Create failed",
+        "statusDraft": "Draft",
+        "statusPublished": "Published",
+        "pricing": "Pricing",
+        "pricingNone": "Not set",
+        "pricingFree": "Free",
+        "pricingFreemium": "Freemium",
+        "pricingPaid": "Paid",
+        "featured": "Featured on homepage"
       }
     },
     "categoriesManagement": {
