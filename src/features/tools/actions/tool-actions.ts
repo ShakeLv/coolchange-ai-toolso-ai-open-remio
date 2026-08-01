@@ -2,13 +2,14 @@
 
 import { db } from "@/lib/db";
 import { tool, toolCategory, toolTag, category, tag } from "@/lib/db/schema";
-import { eq, desc, and, ilike, inArray, sql } from "drizzle-orm";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
 
 // ========== 类型定义 ==========
 export type ToolStatus = "draft" | "published";
+export type ToolPricing = "free" | "freemium" | "paid";
 
 export interface CreateToolInput {
   slug: string;
@@ -20,9 +21,22 @@ export interface CreateToolInput {
   descriptionEn?: string;
   nameZh?: string;
   descriptionZh?: string;
+  pricing?: ToolPricing;
+  featured?: boolean;
   status?: ToolStatus;
   categoryIds?: string[];
   tagIds?: string[];
+}
+
+// 路由实际为 /[locale]/tools/[slug]，revalidatePath 必须带上动态段才能命中缓存
+function revalidateToolPages(withDetail = false) {
+  revalidatePath("/[locale]", "page");
+  revalidatePath("/[locale]/tools", "page");
+  revalidatePath("/[locale]/category/[slug]", "page");
+  revalidatePath("/[locale]/admin/tools", "page");
+  if (withDetail) {
+    revalidatePath("/[locale]/tools/[slug]", "page");
+  }
 }
 
 export interface UpdateToolInput extends Partial<CreateToolInput> {
@@ -36,6 +50,7 @@ export interface ToolListParams {
   categoryId?: string;
   tagId?: string;
   search?: string;
+  pricing?: ToolPricing;
 }
 
 // ========== 查询操作 ==========
@@ -44,7 +59,7 @@ export interface ToolListParams {
  * 获取工具列表（前台）
  */
 export async function getPublishedTools(params: ToolListParams = {}) {
-  const { page = 1, pageSize = 12, categoryId, tagId, search } = params;
+  const { page = 1, pageSize = 12, categoryId, tagId, search, pricing } = params;
   const offset = (page - 1) * pageSize;
 
   let toolIds: string[] | undefined;
@@ -93,6 +108,10 @@ export async function getPublishedTools(params: ToolListParams = {}) {
     );
   }
 
+  if (pricing) {
+    conditions.push(eq(tool.pricing, pricing));
+  }
+
   // 查询工具
   const [tools, countResult] = await Promise.all([
     db
@@ -114,6 +133,31 @@ export async function getPublishedTools(params: ToolListParams = {}) {
     page,
     pageSize,
   };
+}
+
+/**
+ * 首页精选工具：featured 优先，不足时用最新发布补齐
+ */
+export async function getFeaturedTools(limit = 8) {
+  const featuredTools = await db
+    .select()
+    .from(tool)
+    .where(and(eq(tool.status, "published"), eq(tool.featured, true)))
+    .orderBy(desc(tool.createdAt))
+    .limit(limit);
+
+  if (featuredTools.length >= limit) {
+    return featuredTools;
+  }
+
+  const fill = await db
+    .select()
+    .from(tool)
+    .where(and(eq(tool.status, "published"), eq(tool.featured, false)))
+    .orderBy(desc(tool.createdAt))
+    .limit(limit - featuredTools.length);
+
+  return [...featuredTools, ...fill];
 }
 
 /**
@@ -264,8 +308,7 @@ export async function createTool(input: CreateToolInput) {
     );
   }
 
-  revalidatePath("/admin/tools");
-  revalidatePath("/tools");
+  revalidateToolPages();
   return { success: true, id };
 }
 
@@ -315,9 +358,7 @@ export async function updateTool(input: UpdateToolInput) {
     }
   }
 
-  revalidatePath("/admin/tools");
-  revalidatePath("/tools");
-  revalidatePath(`/tools/${input.slug}`);
+  revalidateToolPages(true);
   return { success: true };
 }
 
@@ -332,8 +373,7 @@ export async function deleteTool(id: string) {
 
   await db.delete(tool).where(eq(tool.id, id));
 
-  revalidatePath("/admin/tools");
-  revalidatePath("/tools");
+  revalidateToolPages(true);
   return { success: true };
 }
 
@@ -351,7 +391,6 @@ export async function updateToolStatus(id: string, status: ToolStatus) {
     .set({ status, updatedAt: new Date() })
     .where(eq(tool.id, id));
 
-  revalidatePath("/admin/tools");
-  revalidatePath("/tools");
+  revalidateToolPages(true);
   return { success: true };
 }

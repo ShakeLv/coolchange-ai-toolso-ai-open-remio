@@ -39,7 +39,8 @@
     "admin:setup": "tsx scripts/setup-admin.ts",
     "seed:tools": "tsx scripts/seed-tools.ts",
     "generate:blog-manifest": "node scripts/generate-blog-manifest.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",

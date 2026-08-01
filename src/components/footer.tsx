@@ -3,6 +3,7 @@ import React from "react";
 import { Logo } from "./Logo";
 import { useTranslations } from 'next-intl';
 import { LocaleLink } from './locale-link';
+import { NewsletterForm } from '@/features/marketing/components/newsletter-form';
 
 export const Footer = () => {
   const t = useTranslations();
@@ -55,6 +56,7 @@ export const Footer = () => {
               </div>
               <div>{t('common.brand.copyright')}</div>
               <div className="mt-2">{t('common.brand.allRightsReserved')}</div>
+              <NewsletterForm />
             </div>
             <div className="grid grid-cols-3 gap-10 items-start mt-10 md:mt-0">
               <div className="flex justify-center space-y-4 flex-col mt-4">

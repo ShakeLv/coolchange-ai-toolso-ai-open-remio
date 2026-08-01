@@ -21,14 +21,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/cookies', changeFreq: 'monthly' as const, priority: 0.3 },
   ]
 
-  const [tools, categories, blogs] = await Promise.all([
-    db
-      .select({ slug: tool.slug, updatedAt: tool.updatedAt })
-      .from(tool)
-      .where(eq(tool.status, 'published')),
-    db.select({ slug: category.slug, updatedAt: category.updatedAt }).from(category),
-    getAllBlogs(),
-  ])
+  // 构建环境可能连不上数据库（如 Docker 镜像构建），退化为仅静态路由，
+  // 运行时依靠 revalidate 补全动态条目
+  let tools: { slug: string; updatedAt: Date }[] = []
+  let categories: { slug: string; updatedAt: Date }[] = []
+  let blogs: Awaited<ReturnType<typeof getAllBlogs>> = []
+  try {
+    ;[tools, categories, blogs] = await Promise.all([
+      db
+        .select({ slug: tool.slug, updatedAt: tool.updatedAt })
+        .from(tool)
+        .where(eq(tool.status, 'published')),
+      db.select({ slug: category.slug, updatedAt: category.updatedAt }).from(category),
+      getAllBlogs(),
+    ])
+  } catch (error) {
+    console.warn('sitemap: database unavailable, falling back to static routes only')
+  }
 
   const dynamicRoutes = [
     ...tools.map((t) => ({

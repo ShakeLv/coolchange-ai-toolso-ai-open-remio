@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { category, toolCategory } from "@/lib/db/schema";
-import { eq, asc, sql } from "drizzle-orm";
+import { category, toolCategory, tool } from "@/lib/db/schema";
+import { eq, asc, and, sql } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 import { nanoid } from "nanoid";
@@ -43,10 +43,14 @@ export async function getCategoriesWithCount() {
   const result = await db
     .select({
       category,
-      toolCount: sql<number>`count(${toolCategory.toolId})`,
+      toolCount: sql<number>`count(${tool.id})`,
     })
     .from(category)
     .leftJoin(toolCategory, eq(category.id, toolCategory.categoryId))
+    .leftJoin(
+      tool,
+      and(eq(toolCategory.toolId, tool.id), eq(tool.status, "published"))
+    )
     .groupBy(category.id)
     .orderBy(asc(category.sortOrder), asc(category.nameEn));
 

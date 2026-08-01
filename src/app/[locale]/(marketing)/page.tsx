@@ -5,10 +5,10 @@ import { CTA } from "@/components/cta";
 import { FeaturedTools } from "@/components/featured-tools";
 import { WebSiteJsonLd, OrganizationJsonLd } from "@/components/json-ld";
 import { Metadata } from "next";
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Locale } from "@/i18n.config";
 import { generatePageMetadata } from "@/lib/metadata";
-import { getPublishedTools, getCategoriesWithCount } from "@/features/tools/actions";
+import { getFeaturedTools, getCategoriesWithCount } from "@/features/tools/actions";
 
 export async function generateMetadata({
   params
@@ -26,15 +26,29 @@ export async function generateMetadata({
   });
 }
 
-export default async function Home() {
-  const locale = await getLocale();
+// 首页内容变化不频繁，ISR 每小时再生
+export const revalidate = 3600;
+
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://toolso.ai';
 
-  // 获取精选工具和分类数据
-  const [{ tools }, categories] = await Promise.all([
-    getPublishedTools({ pageSize: 8 }),
-    getCategoriesWithCount(),
-  ]);
+  // 获取精选工具和分类数据（构建时数据库不可用则先渲染空态，运行时 ISR 补全）
+  let tools: Awaited<ReturnType<typeof getFeaturedTools>> = [];
+  let categories: Awaited<ReturnType<typeof getCategoriesWithCount>> = [];
+  try {
+    [tools, categories] = await Promise.all([
+      getFeaturedTools(8),
+      getCategoriesWithCount(),
+    ]);
+  } catch {
+    console.warn("home: database unavailable at build time");
+  }
 
   return (
     <div className="relative">

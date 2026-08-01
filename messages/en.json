@@ -22,7 +22,9 @@
       "update": "Update",
       "continue": "Continue",
       "back": "Back",
-      "next": "Next"
+      "next": "Next",
+      "contactSales": "Contact Sales",
+      "startTrial": "Start Free Trial"
     },
     "status": {
       "loading": "Loading...",
@@ -442,6 +444,11 @@
         "accountSettings": "Account Settings",
         "securitySettings": "Security Settings"
       }
+    },
+    "favorites": {
+      "title": "My Favorites",
+      "empty": "No favorite tools yet.",
+      "browseTools": "Browse tools and save your favorites"
     }
   },
   "profile": {
@@ -459,8 +466,20 @@
       },
       "accountSettings": {
         "title": "Account Settings",
-        "memberSince": "Member Since"
+        "memberSince": "Member Since",
+        "lastLogin": "Last Login",
+        "accountType": "Account Type"
       }
+    },
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Enter your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Enter your email",
+      "updateButton": "Update Profile",
+      "updating": "Updating...",
+      "updateSuccess": "Profile updated successfully!",
+      "updateError": "Failed to update profile. Please try again."
     }
   },
   "contact": {
@@ -539,7 +558,8 @@
     "company": {
       "title": "Company",
       "about": "About",
-      "blog": "Blog"
+      "blog": "Blog",
+      "careers": "Careers"
     },
     "legal": {
       "title": "Legal",
@@ -557,7 +577,10 @@
       "title": "Subscribe to Newsletter",
       "description": "Get the latest updates and news directly in your inbox.",
       "placeholder": "Enter your email",
-      "subscribe": "Subscribe"
+      "subscribe": "Subscribe",
+      "success": "Subscribed! Thanks for joining.",
+      "invalidEmail": "Please enter a valid email address.",
+      "error": "Subscription failed. Please try again."
     }
   },
   "tools": {
@@ -576,7 +599,21 @@
     "toolInfo": "Tool Info",
     "domain": "Domain",
     "added": "Added",
-    "notFound": "Tool Not Found"
+    "notFound": "Tool Not Found",
+    "favorites": {
+      "add": "Save to Favorites",
+      "remove": "Remove from Favorites",
+      "loginRequired": "Please sign in to save favorites",
+      "error": "Action failed. Please try again."
+    },
+    "pricing": {
+      "free": "Free",
+      "freemium": "Freemium",
+      "paid": "Paid"
+    },
+    "categoryPage": {
+      "viewAll": "View all {count} tools"
+    }
   },
   "seo": {
     "home": {
@@ -623,5 +660,12 @@
       "title": "AI Tools Directory - Discover the Best AI Tools",
       "description": "Explore our curated collection of AI tools. Find the best AI tools for productivity, creativity, and more."
     }
+  },
+  "featuredTools": {
+    "title": "Featured Tools",
+    "subtitle": "Curated collection of AI tools to boost your productivity",
+    "visitWebsite": "Visit website",
+    "empty": "No tools yet. Add some in the admin panel.",
+    "viewAll": "View All Tools"
   }
 }

@@ -1,5 +1,6 @@
 import { getPublishedTools, getCategoriesWithCount } from "@/features/tools/actions";
 import { ToolsList } from "@/features/tools/components/tools-list";
+import { FavoritesProvider } from "@/features/tools/components/favorite-button";
 import { CollectionPageJsonLd } from "@/components/json-ld";
 import { getLocale, getTranslations } from "next-intl/server";
 import { generatePageMetadata } from "@/lib/metadata";
@@ -24,6 +25,7 @@ interface ToolsPageProps {
     page?: string;
     category?: string;
     search?: string;
+    pricing?: string;
   }>;
 }
 
@@ -34,6 +36,11 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   const page = parseInt(params.page || "1", 10);
   const categorySlug = params.category;
   const search = params.search;
+  const pricingParam = params.pricing;
+  const pricing =
+    pricingParam === "free" || pricingParam === "freemium" || pricingParam === "paid"
+      ? pricingParam
+      : undefined;
 
   // 获取分类列表用于筛选
   const categories = await getCategoriesWithCount();
@@ -51,6 +58,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
     pageSize: 12,
     categoryId,
     search,
+    pricing,
   });
 
   const totalPages = Math.ceil(total / pageSize);
@@ -64,6 +72,9 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
     foundTools: t("foundTools", { count: total }),
     visitWebsite: t("visitWebsite"),
     noTools: t("noTools"),
+    pricingFree: t("pricing.free"),
+    pricingFreemium: t("pricing.freemium"),
+    pricingPaid: t("pricing.paid"),
   };
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://toolso.ai';
@@ -87,17 +98,20 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
         </p>
       </div>
 
-      <ToolsList
-        tools={tools}
-        categories={categories}
-        currentCategory={categorySlug}
-        currentSearch={search}
-        currentPage={page}
-        totalPages={totalPages}
-        total={total}
-        locale={locale}
-        translations={translations}
-      />
+      <FavoritesProvider>
+        <ToolsList
+          tools={tools}
+          categories={categories}
+          currentCategory={categorySlug}
+          currentPricing={pricing}
+          currentSearch={search}
+          currentPage={page}
+          totalPages={totalPages}
+          total={total}
+          locale={locale}
+          translations={translations}
+        />
+      </FavoritesProvider>
     </div>
   );
 }

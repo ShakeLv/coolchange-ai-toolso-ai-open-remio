@@ -1,22 +1,51 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { tool as toolTable } from "@/lib/db/schema";
 import { getToolBySlug } from "@/features/tools/actions";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { locales } from "@/i18n.config";
 import { ExternalLink, ArrowLeft, Tag } from "lucide-react";
 import { Button } from "@/components/button";
 import { SoftwareApplicationJsonLd } from "@/components/json-ld";
 import { generatePageMetadata } from "@/lib/metadata";
+import {
+  FavoritesProvider,
+  FavoriteButton,
+} from "@/features/tools/components/favorite-button";
+import { ToolLogo } from "@/components/tool-logo";
 
 interface ToolDetailPageProps {
   params: Promise<{
+    locale: string;
     slug: string;
   }>;
 }
 
+// 工具详情内容基本不变，ISR 每小时再生；后台变更会触发 revalidatePath
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    const tools = await db
+      .select({ slug: toolTable.slug })
+      .from(toolTable)
+      .where(eq(toolTable.status, "published"));
+
+    return tools.flatMap((t) =>
+      locales.map((locale) => ({ locale, slug: t.slug }))
+    );
+  } catch {
+    // 构建时数据库不可用（如 Docker 构建），改为运行时按需生成
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: ToolDetailPageProps) {
-  const { slug } = await params;
-  const locale = await getLocale();
-  const t = await getTranslations("tools");
+  const { slug, locale } = await params;
+  const t = await getTranslations({ locale, namespace: "tools" });
   const tool = await getToolBySlug(slug);
 
   if (!tool) {
@@ -41,9 +70,9 @@ export async function generateMetadata({ params }: ToolDetailPageProps) {
 }
 
 export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
-  const { slug } = await params;
-  const locale = await getLocale();
-  const t = await getTranslations("tools");
+  const { slug, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "tools" });
   const tool = await getToolBySlug(slug);
 
   if (!tool) {
@@ -91,19 +120,7 @@ export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
         <div className="lg:col-span-2 space-y-8">
           {/* 工具头部 */}
           <div className="flex items-start gap-6">
-            {tool.logoUrl ? (
-              <img
-                src={tool.logoUrl}
-                alt={name}
-                className="h-20 w-20 rounded-2xl object-cover"
-              />
-            ) : (
-              <div className="h-20 w-20 rounded-2xl bg-secondary flex items-center justify-center">
-                <span className="text-3xl font-bold text-muted-foreground">
-                  {name.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            <ToolLogo src={tool.logoUrl} alt={name} size={80} className="rounded-2xl" />
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 {name}
@@ -117,10 +134,13 @@ export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
           {/* 封面图 */}
           {tool.coverImageUrl && (
             <div className="rounded-xl overflow-hidden border border-border">
-              <img
+              <Image
                 src={tool.coverImageUrl}
                 alt={name}
+                width={1200}
+                height={630}
                 className="w-full h-auto"
+                sizes="(max-width: 1024px) 100vw, 66vw"
               />
             </div>
           )}
@@ -198,6 +218,11 @@ export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
                 </Button>
               </a>
             )}
+
+            {/* 收藏按钮 */}
+            <FavoritesProvider>
+              <FavoriteButton toolId={tool.id} appearance="button" />
+            </FavoritesProvider>
 
             {/* 工具信息卡片 */}
             <div className="bg-secondary rounded-xl p-6 space-y-4">
