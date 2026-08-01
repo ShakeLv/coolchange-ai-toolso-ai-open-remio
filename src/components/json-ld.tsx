@@ -1,4 +1,3 @@
-import Script from 'next/script'
 
 interface WebSiteJsonLdProps {
   name: string
@@ -30,10 +29,8 @@ export function WebSiteJsonLd({ name, description, url, locale }: WebSiteJsonLdP
   }
 
   return (
-    <Script
-      id="website-jsonld"
+    <script
       type="application/ld+json"
-      strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   )
@@ -60,10 +57,8 @@ export function OrganizationJsonLd({ name, url, logo, sameAs = [] }: Organizatio
   }
 
   return (
-    <Script
-      id="organization-jsonld"
+    <script
       type="application/ld+json"
-      strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   )
@@ -103,10 +98,8 @@ export function SoftwareApplicationJsonLd({
   }
 
   return (
-    <Script
-      id="software-jsonld"
+    <script
       type="application/ld+json"
-      strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   )
@@ -143,10 +136,8 @@ export function CollectionPageJsonLd({
   }
 
   return (
-    <Script
-      id="collection-jsonld"
+    <script
       type="application/ld+json"
-      strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
   )

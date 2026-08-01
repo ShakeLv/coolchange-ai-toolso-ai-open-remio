@@ -2,13 +2,21 @@ import { getPublishedTools, getCategoriesWithCount } from "@/features/tools/acti
 import { ToolsList } from "@/features/tools/components/tools-list";
 import { CollectionPageJsonLd } from "@/components/json-ld";
 import { getLocale, getTranslations } from "next-intl/server";
+import { generatePageMetadata } from "@/lib/metadata";
 
-export async function generateMetadata() {
-  const t = await getTranslations("seo.tools");
-  return {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "seo.tools" });
+  return generatePageMetadata({
+    locale,
+    path: "/tools",
     title: t("title"),
     description: t("description"),
-  };
+  });
 }
 
 interface ToolsPageProps {

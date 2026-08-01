@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { ExternalLink, ArrowLeft, Tag } from "lucide-react";
 import { Button } from "@/components/button";
 import { SoftwareApplicationJsonLd } from "@/components/json-ld";
+import { generatePageMetadata } from "@/lib/metadata";
 
 interface ToolDetailPageProps {
   params: Promise<{
@@ -30,10 +31,13 @@ export async function generateMetadata({ params }: ToolDetailPageProps) {
       ? tool.descriptionZh
       : tool.descriptionEn;
 
-  return {
+  return generatePageMetadata({
+    locale,
+    path: `/tools/${slug}`,
     title: `${name} - ${t("title")}`,
     description: description || `${t("subtitle")} - ${name}`,
-  };
+    ogImage: tool.coverImageUrl || tool.logoUrl || undefined,
+  });
 }
 
 export default async function ToolDetailPage({ params }: ToolDetailPageProps) {
