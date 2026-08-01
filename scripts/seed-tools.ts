@@ -16,75 +16,10 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import dotenv from "dotenv";
 import { resolve } from "path";
-import { pgTable, text, timestamp, integer, primaryKey, index } from "drizzle-orm/pg-core";
+import { tool, category, tag, toolCategory, toolTag } from "../src/lib/db/schema";
 
 // 加载环境变量
 dotenv.config({ path: resolve(process.cwd(), ".env.local") });
-
-// ========== Schema 定义 ==========
-const tool = pgTable("tool", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  domain: text("domain"),
-  websiteUrl: text("website_url"),
-  coverImageUrl: text("cover_image_url"),
-  logoUrl: text("logo_url"),
-  nameEn: text("name_en").notNull(),
-  descriptionEn: text("description_en"),
-  nameZh: text("name_zh"),
-  descriptionZh: text("description_zh"),
-  status: text("status").notNull().default("draft"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-}, (table) => [
-  index("tool_slug_idx").on(table.slug),
-  index("tool_status_idx").on(table.status),
-]);
-
-const category = pgTable("category", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  icon: text("icon"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  nameEn: text("name_en").notNull(),
-  descriptionEn: text("description_en"),
-  nameZh: text("name_zh"),
-  descriptionZh: text("description_zh"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-}, (table) => [
-  index("category_slug_idx").on(table.slug),
-  index("category_sort_order_idx").on(table.sortOrder),
-]);
-
-const tag = pgTable("tag", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  nameEn: text("name_en").notNull(),
-  nameZh: text("name_zh"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-}, (table) => [
-  index("tag_slug_idx").on(table.slug),
-]);
-
-const toolCategory = pgTable("tool_category", {
-  toolId: text("tool_id").notNull().references(() => tool.id, { onDelete: "cascade" }),
-  categoryId: text("category_id").notNull().references(() => category.id, { onDelete: "cascade" }),
-}, (table) => [
-  primaryKey({ columns: [table.toolId, table.categoryId] }),
-  index("tool_category_tool_id_idx").on(table.toolId),
-  index("tool_category_category_id_idx").on(table.categoryId),
-]);
-
-const toolTag = pgTable("tool_tag", {
-  toolId: text("tool_id").notNull().references(() => tool.id, { onDelete: "cascade" }),
-  tagId: text("tag_id").notNull().references(() => tag.id, { onDelete: "cascade" }),
-}, (table) => [
-  primaryKey({ columns: [table.toolId, table.tagId] }),
-  index("tool_tag_tool_id_idx").on(table.toolId),
-  index("tool_tag_tag_id_idx").on(table.tagId),
-]);
 
 // ========== 种子数据 ==========
 
@@ -581,10 +516,29 @@ async function seedTools() {
     }
     console.log("✅ 标签数据导入完成\n");
 
-    // 3. 导入工具
+    // 3. 导入工具（pricing 从定价标签推导，featured 从"编辑推荐"标签推导）
     console.log("🔧 导入工具数据 (50 个)...");
+    const pricingTagMap: Record<string, string> = {
+      tag_free: "free",
+      tag_freemium: "freemium",
+      tag_paid: "paid",
+    };
+    const pricingByTool = new Map<string, string>();
+    const featuredToolIds = new Set<string>();
+    for (const tt of toolTagData) {
+      const pricing = pricingTagMap[tt.tagId];
+      if (pricing) pricingByTool.set(tt.toolId, pricing);
+      if (tt.tagId === "tag_editors_choice") featuredToolIds.add(tt.toolId);
+    }
     for (const t of toolsData) {
-      await db.insert(tool).values(t).onConflictDoNothing();
+      await db
+        .insert(tool)
+        .values({
+          ...t,
+          pricing: pricingByTool.get(t.id) ?? null,
+          featured: featuredToolIds.has(t.id),
+        })
+        .onConflictDoNothing();
     }
     console.log("✅ 工具数据导入完成\n");
 
