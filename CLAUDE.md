@@ -7,11 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 这是一个**开源的 AI 工具导航站 (Toolso.AI)**，帮助用户发现和探索各类优秀的 AI 工具。基于 Next.js 16 构建，拥有现代化的响应式界面、强大的搜索和筛选功能、多语言支持。
 
 **核心特性**:
-- AI 工具目录 (分类展示、搜索筛选、工具详情)
-- 工具提交 (用户可提交新工具，社区驱动)
-- 管理后台 (工具审核、用户管理、角色权限)
+- AI 工具目录 (分类展示、搜索筛选、定价筛选、工具详情、分类落地页)
+- 用户收藏 (工具卡片/详情页收藏，仪表盘查看)
+- 管理后台 (工具 CRUD、用户管理、分类/标签管理)
 - 博客系统 (MDX 驱动，AI 资讯和教程)
-- 国际化支持 (中文/英文)
+- Newsletter (页脚订阅 + Resend Audience 同步 + 退订)
+- 国际化支持 (中文/英文，`pnpm i18n:check` 校验键一致性)
 - 用户认证 (Better Auth + Google OAuth)
 
 ## 技术栈
@@ -82,25 +83,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 数据库架构
 
-当前包含 6 个核心表：
+当前包含 12 个表：
 
 ```sql
--- 用户表
-user (id, name, email, emailVerified, image, role, banned, banReason, banExpires, createdAt, updatedAt)
-
--- 认证表
-session (id, expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId)
+-- 认证模块 (src/lib/db/schema/auth.ts)
+user (id, name, email, emailVerified, image, role, banned, banReason, banExpires, ...)
+session (id, expiresAt, token, ipAddress, userAgent, userId, ...)
 account (id, accountId, providerId, userId, accessToken, refreshToken, password, ...)
+verification (id, identifier, value, expiresAt, ...)  -- 邮箱验证 + 密码重置令牌均存于此
 
--- 验证表
-verification (id, identifier, value, expiresAt, createdAt, updatedAt)
-passwordResetToken (id, userId, token, expiresAt, createdAt)
+-- 工具模块 (src/lib/db/schema/tool.ts)
+tool (id, slug, domain, websiteUrl, coverImageUrl, logoUrl, nameEn/Zh, descriptionEn/Zh,
+      pricing, featured, viewCount, status, ...)
+      -- status: draft | published
+      -- pricing: free | freemium | paid
+category (id, slug, icon, sortOrder, nameEn/Zh, descriptionEn/Zh, ...)
+tag (id, slug, nameEn/Zh, ...)
+tool_category (toolId, categoryId)   -- 多对多
+tool_tag (toolId, tagId)             -- 多对多
+favorite (userId, toolId, createdAt) -- 用户收藏，联合主键
 
--- 其他
-newsletterSubscription (id, email, userId, status, unsubscribeToken, subscribedAt, ...)
+-- 营销模块 (src/lib/db/schema/marketing.ts)
+newsletter_subscription (id, email, userId, status, unsubscribeToken, subscribedAt, ...)
+contact_message (id, name, email, company, message, createdAt)
 ```
 
-完整 Schema 定义: `src/lib/db/schema.ts`
+Schema 汇出入口: `src/lib/db/schema.ts`
 
 ## 常用开发命令
 
@@ -115,7 +123,9 @@ pnpm build
 pnpm start
 
 # 代码检查
-pnpm lint
+pnpm lint           # ESLint 9 (flat config)
+pnpm typecheck      # tsc --noEmit
+pnpm i18n:check     # 翻译键一致性检查
 
 # 数据库操作
 pnpm db:generate    # 生成 Drizzle 迁移文件
@@ -125,6 +135,7 @@ pnpm db:studio      # 启动 Drizzle Studio 数据库管理界面
 
 # 管理员工具
 pnpm admin:setup    # 创建管理员账户
+pnpm seed:tools     # 导入工具种子数据（50 工具/10 分类/30 标签）
 
 # 博客清单生成
 pnpm generate:blog-manifest
@@ -197,7 +208,7 @@ NEXT_PUBLIC_CLARITY_PROJECT_ID="..."
 
 ### 密码重置流程
 1. 用户输入邮箱
-2. 生成重置令牌存入 `passwordResetToken` 表
+2. 生成重置令牌存入 `verification` 表（identifier 带 reset 前缀）
 3. 发送重置邮件
 4. 用户点击链接设置新密码
 
@@ -206,10 +217,9 @@ NEXT_PUBLIC_CLARITY_PROJECT_ID="..."
 管理员权限通过 `user.role = 'admin'` 标识。
 
 **功能**:
-- 用户列表和搜索
-- 查看用户详情
-- 修改用户角色
-- 禁用/解禁用户
+- 用户列表和搜索、查看详情、修改角色、禁用/解禁
+- 工具 CRUD、上下架、精选标记
+- 分类与标签管理
 
 **创建管理员账户**:
 ```bash
