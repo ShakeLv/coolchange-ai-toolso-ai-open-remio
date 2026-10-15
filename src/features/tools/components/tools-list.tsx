@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { FavoriteButton } from "@/features/tools/components/favorite-button";
+import { ToolLogo } from "@/components/tool-logo";
 
 interface ToolData {
   id: string;
@@ -16,6 +18,7 @@ interface ToolData {
   descriptionEn: string | null;
   nameZh: string | null;
   descriptionZh: string | null;
+  pricing: string | null;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -38,12 +41,16 @@ interface ToolsTranslations {
   foundTools: string;
   visitWebsite: string;
   noTools: string;
+  pricingFree: string;
+  pricingFreemium: string;
+  pricingPaid: string;
 }
 
 interface ToolsListProps {
   tools: ToolData[];
   categories: CategoryData[];
   currentCategory?: string;
+  currentPricing?: string;
   currentSearch?: string;
   currentPage: number;
   totalPages: number;
@@ -56,6 +63,7 @@ export function ToolsList({
   tools,
   categories,
   currentCategory,
+  currentPricing,
   currentSearch,
   currentPage,
   totalPages,
@@ -90,6 +98,17 @@ export function ToolsList({
     router.push(`/${locale}/tools?${params.toString()}`);
   };
 
+  const handlePricingChange = (pricing: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (pricing) {
+      params.set("pricing", pricing);
+    } else {
+      params.delete("pricing");
+    }
+    params.delete("page");
+    router.push(`/${locale}/tools?${params.toString()}`);
+  };
+
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
@@ -106,6 +125,12 @@ export function ToolsList({
 
   const getCategoryName = (category: CategoryData) =>
     locale === "zh" && category.nameZh ? category.nameZh : category.nameEn;
+
+  const pricingLabels: Record<string, string> = {
+    free: translations.pricingFree,
+    freemium: translations.pricingFreemium,
+    paid: translations.pricingPaid,
+  };
 
   return (
     <div className="space-y-6">
@@ -163,6 +188,33 @@ export function ToolsList({
             </button>
           ))}
         </div>
+
+        {/* 第三行：定价筛选 */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => handlePricingChange(null)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              !currentPricing
+                ? "bg-foreground text-background"
+                : "bg-secondary text-muted-foreground hover:bg-hover"
+            }`}
+          >
+            {translations.all}
+          </button>
+          {(["free", "freemium", "paid"] as const).map((pricing) => (
+            <button
+              key={pricing}
+              onClick={() => handlePricingChange(pricing)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                currentPricing === pricing
+                  ? "bg-foreground text-background"
+                  : "bg-secondary text-muted-foreground hover:bg-hover"
+              }`}
+            >
+              {pricingLabels[pricing]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 工具网格 */}
@@ -174,19 +226,7 @@ export function ToolsList({
             className="group bg-background rounded-xl border border-border p-5 hover:shadow-lg transition-all hover:border-foreground/20"
           >
             <div className="flex items-start gap-4">
-              {tool.logoUrl ? (
-                <img
-                  src={tool.logoUrl}
-                  alt={getName(tool)}
-                  className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-muted-foreground">
-                    {getName(tool).charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
+              <ToolLogo src={tool.logoUrl} alt={getName(tool)} size={48} />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-foreground group-hover:text-primary truncate">
                   {getName(tool)}
@@ -197,6 +237,7 @@ export function ToolsList({
                   </p>
                 )}
               </div>
+              <FavoriteButton toolId={tool.id} />
             </div>
 
             {getDescription(tool) && (
@@ -205,12 +246,21 @@ export function ToolsList({
               </p>
             )}
 
-            {tool.websiteUrl && (
-              <div className="mt-4 flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
-                <ExternalLink className="h-3 w-3" />
-                <span>{translations.visitWebsite}</span>
-              </div>
-            )}
+            <div className="mt-4 flex items-center justify-between">
+              {tool.websiteUrl ? (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
+                  <ExternalLink className="h-3 w-3" />
+                  <span>{translations.visitWebsite}</span>
+                </div>
+              ) : (
+                <span />
+              )}
+              {tool.pricing && pricingLabels[tool.pricing] && (
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+                  {pricingLabels[tool.pricing]}
+                </span>
+              )}
+            </div>
           </Link>
         ))}
       </div>

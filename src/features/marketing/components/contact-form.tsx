@@ -10,7 +10,10 @@ import {
   FormTextareaField,
   FormTextField,
 } from "@/features/forms/components/form-text-field";
+import { toast } from "sonner";
+
 import { ContactInput, contactSchema } from "@/features/marketing/schemas";
+import { submitContactMessage } from "@/features/marketing/actions/contact-actions";
 import {
   IconBrandGithub,
   IconBrandLinkedin,
@@ -54,8 +57,13 @@ export function ContactForm() {
   });
 
   async function onSubmit(values: ContactInput) {
-    // TODO: wire up to backend when available
-    console.log("submitted form", values);
+    const result = await submitContactMessage(values);
+    if (result.success) {
+      toast.success(t("form.submitSuccess"));
+      form.reset();
+    } else {
+      toast.error(t("form.submitError"));
+    }
   }
 
   return (

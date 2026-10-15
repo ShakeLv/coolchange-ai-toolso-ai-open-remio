@@ -7,6 +7,7 @@ import { Button } from "@/components/button";
 import { Container } from "@/components/container";
 import { Background } from "@/components/background";
 import { motion } from "framer-motion";
+import { FavoriteToolsSection } from "@/features/tools/components/favorite-tools-section";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -133,6 +134,15 @@ export default function DashboardPage() {
           >
             Sign Out
           </Button>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ ease: "easeOut", duration: 0.5, delay: 0.2 }}
+          className="mt-6"
+        >
+          <FavoriteToolsSection />
         </motion.div>
       </Container>
     </div>

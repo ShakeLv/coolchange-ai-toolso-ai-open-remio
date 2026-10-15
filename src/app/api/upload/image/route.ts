@@ -2,56 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { uploadImageFromUrl } from "@/lib/r2-storage";
 
-// Simple image dimension detection for common formats
-async function getImageDimensions(buffer: Buffer, mimeType: string): Promise<{ width: number; height: number } | null> {
-  try {
-    // For JPEG
-    if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
-      // JPEG starts with FF D8 FF
-      if (buffer[0] === 0xFF && buffer[1] === 0xD8) {
-        let offset = 2;
-        while (offset < buffer.length) {
-          if (buffer[offset] !== 0xFF) break;
-          
-          const marker = buffer[offset + 1];
-          if (marker === 0xC0 || marker === 0xC2) { // SOF0 or SOF2
-            const height = buffer.readUInt16BE(offset + 5);
-            const width = buffer.readUInt16BE(offset + 7);
-            return { width, height };
-          }
-          
-          offset += 2 + buffer.readUInt16BE(offset + 2);
-        }
-      }
-    }
-    
-    // For PNG
-    if (mimeType === 'image/png') {
-      // PNG starts with 89 50 4E 47
-      if (buffer[0] === 0x89 && buffer[1] === 0x50) {
-        const width = buffer.readUInt32BE(16);
-        const height = buffer.readUInt32BE(20);
-        return { width, height };
-      }
-    }
-    
-    // For WebP
-    if (mimeType === 'image/webp') {
-      // WebP starts with RIFF
-      if (buffer.toString('utf8', 0, 4) === 'RIFF') {
-        const width = buffer.readUInt16LE(26) + 1;
-        const height = buffer.readUInt16LE(28) + 1;
-        return { width, height };
-      }
-    }
-    
-    return null;
-  } catch (error) {
-    console.error("Error detecting image dimensions:", error);
-    return null;
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     // Authenticate user
@@ -86,21 +36,6 @@ export async function POST(req: NextRequest) {
     // Convert File to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // For video generation, check minimum image dimensions
-    // Volcano Engine requires minimum 300px height
-    try {
-      // Simple dimension check for common formats
-      const dimensions = await getImageDimensions(buffer, file.type);
-      if (dimensions && (dimensions.width < 300 || dimensions.height < 300)) {
-        return NextResponse.json({ 
-          error: "Image must be at least 300x300 pixels for video generation" 
-        }, { status: 400 });
-      }
-    } catch (err) {
-      console.warn("Could not validate image dimensions:", err);
-      // Continue anyway if we can't determine dimensions
-    }
 
     // Generate unique filename
     const timestamp = Date.now();

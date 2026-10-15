@@ -33,8 +33,9 @@ Toolso.AI is an open-source AI tools directory designed to help users discover t
 |---------|-------------|----------|
 | **AI Tools Directory** | Categorized AI tools listing | Easy discovery and exploration |
 | **Search & Filter** | Powerful search with category filters | Find the right tool quickly |
-| **Tool Submission** | User-contributed tool submissions | Community-driven content |
-| **Admin Panel** | Tool & user management | Approve submissions, manage content |
+| **Admin Panel** | Tool & user management | Manage content with ease |
+| **Favorites** | Save tools to your personal collection | Sign in and build your toolbox |
+| **Newsletter** | Footer subscription backed by Resend | Grow your audience |
 | **Blog System** | MDX-powered multilingual blog | SEO-optimized AI insights |
 | **i18n** | next-intl internationalization | English & Chinese out of the box |
 | **Authentication** | Better Auth + Google OAuth | User accounts and submissions |
@@ -63,6 +64,12 @@ cp .env.example .env.local
 
 # Push database schema
 pnpm db:push
+
+# (Optional) Seed 50 AI tools, 10 categories and 30 tags
+pnpm seed:tools
+
+# (Optional) Create an admin account
+pnpm admin:setup
 
 # Start development server
 pnpm dev
@@ -147,13 +154,16 @@ scripts/                      # Build & admin scripts
 pnpm dev              # Start development server
 pnpm build            # Build for production
 pnpm start            # Start production server
-pnpm lint             # Run ESLint
+pnpm lint             # Run ESLint (flat config)
+pnpm typecheck        # Run TypeScript type check
+pnpm i18n:check       # Verify translation key consistency
 
 # Database
 pnpm db:generate      # Generate Drizzle migrations
 pnpm db:migrate       # Run migrations
 pnpm db:push          # Push schema to database
 pnpm db:studio        # Open Drizzle Studio
+pnpm seed:tools       # Seed AI tools data
 
 # Admin
 pnpm admin:setup      # Create admin account
@@ -171,12 +181,23 @@ pnpm generate:blog-manifest  # Generate blog manifest
 3. Add environment variables
 4. Deploy
 
+### Docker
+
+```bash
+# Start PostgreSQL + app
+docker compose up -d --build
+
+# Initialize database (run from host)
+DATABASE_URL=postgresql://toolso:toolso@localhost:5432/toolso pnpm db:push
+DATABASE_URL=postgresql://toolso:toolso@localhost:5432/toolso pnpm seed:tools
+DATABASE_URL=postgresql://toolso:toolso@localhost:5432/toolso pnpm admin:setup
+```
+
 ### Other Platforms
 
 The template works with any platform supporting Node.js:
 - Railway
 - Render
-- Docker
 - Self-hosted
 
 ### Deployment Checklist
@@ -192,14 +213,23 @@ The template works with any platform supporting Node.js:
 The template supports multiple languages via `next-intl`:
 
 - **Supported**: English (`en`), Chinese (`zh`)
-- **Route Format**: `/en/...`, `/zh/...`
+- **Route Format**: English is the default locale without prefix (`/...`), Chinese uses `/zh/...` (`localePrefix: 'as-needed'`)
 - **Translation Files**: `messages/en.json`, `messages/zh.json`
+- **Consistency Check**: `pnpm i18n:check`
 
 ### Adding a New Language
 
 1. Copy `messages/en.json` to `messages/{locale}.json`
 2. Translate the content
 3. Update `i18n.config.ts`
+
+> Note: UI copy is fully translatable via JSON files, but tool/category/tag **data** is stored as bilingual columns (`nameEn`/`nameZh`) in the database. Adding a third content language requires extending the schema and queries.
+
+## Roadmap
+
+- [ ] User tool submission with review workflow
+- [ ] Tool ratings & comments
+- [ ] Automated tool data import pipeline
 
 ## Contributing
 
@@ -229,8 +259,9 @@ Toolso.AI 是一个开源的 AI 工具导航站，旨在帮助用户发现各类
 |------|------|------|
 | **AI 工具目录** | 分类展示 AI 工具 | 轻松发现和探索 |
 | **搜索与筛选** | 强大的搜索和分类筛选 | 快速找到合适的工具 |
-| **工具提交** | 用户可提交新工具 | 社区驱动内容 |
-| **管理后台** | 工具和用户管理 | 审核提交、管理内容 |
+| **管理后台** | 工具和用户管理 | 轻松管理内容 |
+| **收藏功能** | 登录用户可收藏工具 | 打造个人工具箱 |
+| **Newsletter** | 页脚订阅（基于 Resend） | 沉淀你的用户 |
 | **博客系统** | MDX 驱动的多语言博客 | SEO 优化的 AI 资讯 |
 | **国际化** | next-intl 国际化 | 中英文开箱即用 |
 | **身份认证** | Better Auth + Google OAuth | 用户账户和提交功能 |
@@ -259,6 +290,12 @@ cp .env.example .env.local
 
 # 推送数据库结构
 pnpm db:push
+
+# （可选）导入 50 个 AI 工具、10 个分类、30 个标签种子数据
+pnpm seed:tools
+
+# （可选）创建管理员账户
+pnpm admin:setup
 
 # 启动开发服务器
 pnpm dev
@@ -343,13 +380,16 @@ scripts/                      # 构建和管理脚本
 pnpm dev              # 启动开发服务器
 pnpm build            # 构建生产版本
 pnpm start            # 启动生产服务器
-pnpm lint             # 运行 ESLint
+pnpm lint             # 运行 ESLint（flat config）
+pnpm typecheck        # TypeScript 类型检查
+pnpm i18n:check       # 校验翻译键一致性
 
 # 数据库
 pnpm db:generate      # 生成 Drizzle 迁移
 pnpm db:migrate       # 运行迁移
 pnpm db:push          # 推送 schema 到数据库
 pnpm db:studio        # 打开 Drizzle Studio
+pnpm seed:tools       # 导入工具种子数据
 
 # 管理员
 pnpm admin:setup      # 创建管理员账户
@@ -367,12 +407,23 @@ pnpm generate:blog-manifest  # 生成博客清单
 3. 添加环境变量
 4. 部署
 
+### Docker
+
+```bash
+# 启动 PostgreSQL + 应用
+docker compose up -d --build
+
+# 初始化数据库（在宿主机执行）
+DATABASE_URL=postgresql://toolso:toolso@localhost:5432/toolso pnpm db:push
+DATABASE_URL=postgresql://toolso:toolso@localhost:5432/toolso pnpm seed:tools
+DATABASE_URL=postgresql://toolso:toolso@localhost:5432/toolso pnpm admin:setup
+```
+
 ### 其他平台
 
 模板支持任何支持 Node.js 的平台：
 - Railway
 - Render
-- Docker
 - 自托管
 
 ### 部署清单
@@ -388,14 +439,23 @@ pnpm generate:blog-manifest  # 生成博客清单
 模板通过 `next-intl` 支持多语言：
 
 - **已支持**: 英文 (`en`)、中文 (`zh`)
-- **路由格式**: `/en/...`、`/zh/...`
+- **路由格式**: 英文为默认语言不带前缀（`/...`），中文为 `/zh/...`（`localePrefix: 'as-needed'`）
 - **翻译文件**: `messages/en.json`、`messages/zh.json`
+- **一致性检查**: `pnpm i18n:check`
 
 ### 添加新语言
 
 1. 复制 `messages/en.json` 到 `messages/{语言代码}.json`
 2. 翻译内容
 3. 更新 `i18n.config.ts`
+
+> 注意：UI 文案可完全通过 JSON 文件翻译，但工具/分类/标签的**数据**在数据库中以双语列（`nameEn`/`nameZh`）存储。新增第三种内容语言需要扩展 schema 和查询。
+
+## Roadmap
+
+- [ ] 用户工具提交与审核工作流
+- [ ] 工具评分与评论
+- [ ] 自动化工具数据采集管线
 
 ## 贡献指南
 

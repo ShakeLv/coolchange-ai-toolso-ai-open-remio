@@ -48,7 +48,7 @@ export const VerificationEmail = ({
           </Link>
 
           <Text style={footer}>
-            If you didn't sign up for Toolso.AI, you can safely ignore this email.
+            If you didn&apos;t sign up for Toolso.AI, you can safely ignore this email.
           </Text>
         </Container>
       </Body>

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ExternalLink, ArrowRight } from "lucide-react";
 import { Heading } from "./heading";
 import { Subheading } from "./subheading";
+import { ToolLogo } from "./tool-logo";
 
 interface ToolData {
   id: string;
@@ -34,6 +35,7 @@ interface FeaturedToolsProps {
 
 export function FeaturedTools({ tools, categories }: FeaturedToolsProps) {
   const locale = useLocale();
+  const t = useTranslations("featuredTools");
 
   const getName = (item: { nameEn: string; nameZh: string | null }) =>
     locale === "zh" && item.nameZh ? item.nameZh : item.nameEn;
@@ -45,14 +47,8 @@ export function FeaturedTools({ tools, categories }: FeaturedToolsProps) {
 
   return (
     <div className="relative z-20">
-      <Heading as="h2">
-        {locale === "zh" ? "精选工具" : "Featured Tools"}
-      </Heading>
-      <Subheading className="text-center">
-        {locale === "zh"
-          ? "精选优质 AI 工具，助力提升工作效率"
-          : "Curated collection of AI tools to boost your productivity"}
-      </Subheading>
+      <Heading as="h2">{t("title")}</Heading>
+      <Subheading className="text-center">{t("subtitle")}</Subheading>
 
       {/* 分类导航 */}
       {categories.length > 0 && (
@@ -82,19 +78,7 @@ export function FeaturedTools({ tools, categories }: FeaturedToolsProps) {
             className="group bg-background rounded-xl border border-border p-5 hover:shadow-lg transition-all hover:border-foreground/20"
           >
             <div className="flex items-start gap-4">
-              {tool.logoUrl ? (
-                <img
-                  src={tool.logoUrl}
-                  alt={getName(tool)}
-                  className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl font-bold text-muted-foreground">
-                    {getName(tool).charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
+              <ToolLogo src={tool.logoUrl} alt={getName(tool)} size={48} />
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-foreground group-hover:text-primary truncate">
                   {getName(tool)}
@@ -116,7 +100,7 @@ export function FeaturedTools({ tools, categories }: FeaturedToolsProps) {
             {tool.websiteUrl && (
               <div className="mt-4 flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
                 <ExternalLink className="h-3 w-3" />
-                <span>{locale === "zh" ? "访问网站" : "Visit website"}</span>
+                <span>{t("visitWebsite")}</span>
               </div>
             )}
           </Link>
@@ -126,7 +110,7 @@ export function FeaturedTools({ tools, categories }: FeaturedToolsProps) {
       {/* 空状态 */}
       {tools.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
-          {locale === "zh" ? "暂无工具，请先在后台添加" : "No tools yet. Add some in the admin panel."}
+          {t("empty")}
         </div>
       )}
 
@@ -137,7 +121,7 @@ export function FeaturedTools({ tools, categories }: FeaturedToolsProps) {
             href={`/${locale}/tools`}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity font-medium"
           >
-            {locale === "zh" ? "查看全部工具" : "View All Tools"}
+            {t("viewAll")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

@@ -16,75 +16,10 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import dotenv from "dotenv";
 import { resolve } from "path";
-import { pgTable, text, timestamp, integer, primaryKey, index } from "drizzle-orm/pg-core";
+import { tool, category, tag, toolCategory, toolTag } from "../src/lib/db/schema";
 
 // 加载环境变量
 dotenv.config({ path: resolve(process.cwd(), ".env.local") });
-
-// ========== Schema 定义 ==========
-const tool = pgTable("tool", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  domain: text("domain"),
-  websiteUrl: text("website_url"),
-  coverImageUrl: text("cover_image_url"),
-  logoUrl: text("logo_url"),
-  nameEn: text("name_en").notNull(),
-  descriptionEn: text("description_en"),
-  nameZh: text("name_zh"),
-  descriptionZh: text("description_zh"),
-  status: text("status").notNull().default("draft"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-}, (table) => [
-  index("tool_slug_idx").on(table.slug),
-  index("tool_status_idx").on(table.status),
-]);
-
-const category = pgTable("category", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  icon: text("icon"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  nameEn: text("name_en").notNull(),
-  descriptionEn: text("description_en"),
-  nameZh: text("name_zh"),
-  descriptionZh: text("description_zh"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-}, (table) => [
-  index("category_slug_idx").on(table.slug),
-  index("category_sort_order_idx").on(table.sortOrder),
-]);
-
-const tag = pgTable("tag", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  nameEn: text("name_en").notNull(),
-  nameZh: text("name_zh"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-}, (table) => [
-  index("tag_slug_idx").on(table.slug),
-]);
-
-const toolCategory = pgTable("tool_category", {
-  toolId: text("tool_id").notNull().references(() => tool.id, { onDelete: "cascade" }),
-  categoryId: text("category_id").notNull().references(() => category.id, { onDelete: "cascade" }),
-}, (table) => [
-  primaryKey({ columns: [table.toolId, table.categoryId] }),
-  index("tool_category_tool_id_idx").on(table.toolId),
-  index("tool_category_category_id_idx").on(table.categoryId),
-]);
-
-const toolTag = pgTable("tool_tag", {
-  toolId: text("tool_id").notNull().references(() => tool.id, { onDelete: "cascade" }),
-  tagId: text("tag_id").notNull().references(() => tag.id, { onDelete: "cascade" }),
-}, (table) => [
-  primaryKey({ columns: [table.toolId, table.tagId] }),
-  index("tool_tag_tool_id_idx").on(table.toolId),
-  index("tool_tag_tag_id_idx").on(table.tagId),
-]);
 
 // ========== 种子数据 ==========
 
@@ -141,12 +76,12 @@ const tagsData = [
 ];
 
 const toolsData = [
+  { id: 'tool_ai_tools_radar', slug: 'ai-tools-radar', domain: 'aitoolsradar.com', websiteUrl: 'https://aitoolsradar.com', logoUrl: 'https://aitoolsradar.com/brand/ai-tools-radar-logo-clean-192.png', nameEn: 'AI Tools Radar', descriptionEn: 'AI tools directory and editorial platform for discovering, comparing, and tracking AI products, with daily AI industry news.', nameZh: 'AI Tools Radar', descriptionZh: 'AI工具导航与产业资讯平台，帮助发现、比较和追踪AI产品，并提供每日AI行业资讯。', status: 'published' },
   // AI 聊天机器人 (8个)
   { id: 'tool_chatgpt', slug: 'chatgpt', domain: 'chat.openai.com', websiteUrl: 'https://chat.openai.com', logoUrl: 'https://chat.openai.com/favicon.ico', nameEn: 'ChatGPT', descriptionEn: "OpenAI's advanced conversational AI assistant powered by GPT-4. Capable of natural conversations, code generation, creative writing, and complex reasoning.", nameZh: 'ChatGPT', descriptionZh: 'OpenAI推出的先进对话式AI助手，由GPT-4驱动。能够进行自然对话、代码生成、创意写作和复杂推理。', status: 'published' },
   { id: 'tool_claude', slug: 'claude', domain: 'claude.ai', websiteUrl: 'https://claude.ai', logoUrl: 'https://claude.ai/favicon.ico', nameEn: 'Claude', descriptionEn: "Anthropic's helpful, harmless, and honest AI assistant. Known for nuanced understanding, long context windows, and thoughtful responses.", nameZh: 'Claude', descriptionZh: 'Anthropic推出的有用、无害、诚实的AI助手。以细腻的理解、长上下文窗口和深思熟虑的回复著称。', status: 'published' },
   { id: 'tool_gemini', slug: 'gemini', domain: 'gemini.google.com', websiteUrl: 'https://gemini.google.com', logoUrl: 'https://gemini.google.com/favicon.ico', nameEn: 'Google Gemini', descriptionEn: "Google's multimodal AI assistant that can understand text, images, audio, and video. Integrated with Google services.", nameZh: 'Google Gemini', descriptionZh: 'Google的多模态AI助手，能够理解文本、图像、音频和视频。与Google服务深度集成。', status: 'published' },
   { id: 'tool_perplexity', slug: 'perplexity', domain: 'perplexity.ai', websiteUrl: 'https://perplexity.ai', logoUrl: 'https://perplexity.ai/favicon.ico', nameEn: 'Perplexity AI', descriptionEn: 'AI-powered search engine that provides direct answers with cited sources. Combines web search with language model capabilities.', nameZh: 'Perplexity AI', descriptionZh: 'AI驱动的搜索引擎，提供带引用来源的直接答案。结合网络搜索与语言模型能力。', status: 'published' },
-  { id: 'tool_ai_tools_radar', slug: 'ai-tools-radar', domain: 'aitoolsradar.com', websiteUrl: 'https://aitoolsradar.com', logoUrl: 'https://aitoolsradar.com/favicon.ico', nameEn: 'AI Tools Radar', descriptionEn: 'AI tools directory and editorial platform for discovering, comparing, and tracking AI products, with daily AI industry news.', nameZh: 'AI Tools Radar', descriptionZh: 'AI工具导航与产业资讯平台，帮助发现、比较和追踪AI产品，并提供每日AI行业资讯。', status: 'published' },
   { id: 'tool_poe', slug: 'poe', domain: 'poe.com', websiteUrl: 'https://poe.com', logoUrl: 'https://poe.com/favicon.ico', nameEn: 'Poe', descriptionEn: 'Platform by Quora offering access to multiple AI models including GPT-4, Claude, and custom bots in one interface.', nameZh: 'Poe', descriptionZh: 'Quora推出的平台，在一个界面中提供多个AI模型访问，包括GPT-4、Claude和自定义机器人。', status: 'published' },
   { id: 'tool_character', slug: 'character-ai', domain: 'character.ai', websiteUrl: 'https://character.ai', logoUrl: 'https://character.ai/favicon.ico', nameEn: 'Character.AI', descriptionEn: 'Create and chat with AI characters. Popular for roleplay, creative storytelling, and entertainment purposes.', nameZh: 'Character.AI', descriptionZh: '创建AI角色并与之聊天。在角色扮演、创意故事讲述和娱乐方面广受欢迎。', status: 'published' },
   { id: 'tool_coze', slug: 'coze', domain: 'coze.com', websiteUrl: 'https://coze.com', logoUrl: 'https://coze.com/favicon.ico', nameEn: 'Coze', descriptionEn: "ByteDance's AI chatbot platform for creating custom AI bots with plugins, workflows, and knowledge bases.", nameZh: 'Coze', descriptionZh: '字节跳动的AI聊天机器人平台，可创建带插件、工作流和知识库的自定义AI机器人。', status: 'published' },
@@ -213,14 +148,14 @@ const toolsData = [
 
 // 工具-分类关联数据
 const toolCategoryData = [
+  { toolId: 'tool_ai_tools_radar', categoryId: 'cat_productivity' },
+  { toolId: 'tool_ai_tools_radar', categoryId: 'cat_research' },
   // 聊天机器人
   { toolId: 'tool_chatgpt', categoryId: 'cat_chatbot' },
   { toolId: 'tool_claude', categoryId: 'cat_chatbot' },
   { toolId: 'tool_gemini', categoryId: 'cat_chatbot' },
   { toolId: 'tool_perplexity', categoryId: 'cat_chatbot' },
   { toolId: 'tool_perplexity', categoryId: 'cat_research' },
-  { toolId: 'tool_ai_tools_radar', categoryId: 'cat_productivity' },
-  { toolId: 'tool_ai_tools_radar', categoryId: 'cat_research' },
   { toolId: 'tool_poe', categoryId: 'cat_chatbot' },
   { toolId: 'tool_character', categoryId: 'cat_chatbot' },
   { toolId: 'tool_coze', categoryId: 'cat_chatbot' },
@@ -287,6 +222,10 @@ const toolCategoryData = [
 
 // 工具-标签关联数据
 const toolTagData = [
+  { toolId: 'tool_ai_tools_radar', tagId: 'tag_free' },
+  { toolId: 'tool_ai_tools_radar', tagId: 'tag_realtime' },
+  { toolId: 'tool_ai_tools_radar', tagId: 'tag_trending' },
+  { toolId: 'tool_ai_tools_radar', tagId: 'tag_text' },
   // ChatGPT
   { toolId: 'tool_chatgpt', tagId: 'tag_freemium' },
   { toolId: 'tool_chatgpt', tagId: 'tag_gpt' },
@@ -315,10 +254,6 @@ const toolTagData = [
   { toolId: 'tool_perplexity', tagId: 'tag_realtime' },
   { toolId: 'tool_perplexity', tagId: 'tag_trending' },
   { toolId: 'tool_perplexity', tagId: 'tag_text' },
-  { toolId: 'tool_ai_tools_radar', tagId: 'tag_freemium' },
-  { toolId: 'tool_ai_tools_radar', tagId: 'tag_realtime' },
-  { toolId: 'tool_ai_tools_radar', tagId: 'tag_trending' },
-  { toolId: 'tool_ai_tools_radar', tagId: 'tag_text' },
   // Poe
   { toolId: 'tool_poe', tagId: 'tag_freemium' },
   { toolId: 'tool_poe', tagId: 'tag_llm' },
@@ -588,10 +523,29 @@ async function seedTools() {
     }
     console.log("✅ 标签数据导入完成\n");
 
-    // 3. 导入工具
+    // 3. 导入工具（pricing 从定价标签推导，featured 从"编辑推荐"标签推导）
     console.log("🔧 导入工具数据 (50 个)...");
+    const pricingTagMap: Record<string, string> = {
+      tag_free: "free",
+      tag_freemium: "freemium",
+      tag_paid: "paid",
+    };
+    const pricingByTool = new Map<string, string>();
+    const featuredToolIds = new Set<string>();
+    for (const tt of toolTagData) {
+      const pricing = pricingTagMap[tt.tagId];
+      if (pricing) pricingByTool.set(tt.toolId, pricing);
+      if (tt.tagId === "tag_editors_choice") featuredToolIds.add(tt.toolId);
+    }
     for (const t of toolsData) {
-      await db.insert(tool).values(t).onConflictDoNothing();
+      await db
+        .insert(tool)
+        .values({
+          ...t,
+          pricing: pricingByTool.get(t.id) ?? null,
+          featured: featuredToolIds.has(t.id),
+        })
+        .onConflictDoNothing();
     }
     console.log("✅ 工具数据导入完成\n");
 

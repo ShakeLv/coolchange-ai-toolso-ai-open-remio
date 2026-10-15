@@ -29,8 +29,6 @@ const getDefaultFromEmail = () => {
   return `${fromName} <noreply@${process.env.RESEND_VERIFIED_DOMAIN}>`;
 };
 
-const DEFAULT_FROM_EMAIL = getDefaultFromEmail();
-
 export interface SendEmailOptions {
   to: string | string[];
   subject: string;
@@ -47,7 +45,8 @@ export async function sendEmail({
   react,
   html,
   text,
-  from = DEFAULT_FROM_EMAIL,
+  // 每次发送时求值，避免 serverless 冷启动时 env 未就绪被永久缓存
+  from = getDefaultFromEmail(),
   replyTo,
 }: SendEmailOptions) {
   try {

@@ -32,6 +32,8 @@ interface ToolData {
   descriptionEn: string | null;
   nameZh: string | null;
   descriptionZh: string | null;
+  pricing: string | null;
+  featured: boolean;
   status: string;
   createdAt: Date;
   updatedAt: Date;
